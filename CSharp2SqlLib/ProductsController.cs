@@ -24,6 +24,17 @@ namespace CSharp2SqlLib
             return product;
         }
 
+        private int AddWithValue(Product product, SqlCommand cmd)
+        {
+            cmd.Parameters.AddWithValue("@partnbr", product.PartNbr);
+            cmd.Parameters.AddWithValue("@name", product.Name);
+            cmd.Parameters.AddWithValue("@price", product.Price);
+            cmd.Parameters.AddWithValue("@unit", product.Unit);
+            cmd.Parameters.AddWithValue("@photopath", (object)product.PhotoPath ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@vendorid", product.VendorId);
+            return cmd.ExecuteNonQuery();
+        }
+
         public List<Product> GetAll()
         {
             var sql = "SELECT * From Products;";
@@ -84,25 +95,39 @@ namespace CSharp2SqlLib
                 + "(PartNbr, Name, Price, Unit, PhotoPath, VendorId) "
                 + " VALUES (@partnbr, @name, @price, @unit, @photopath, @vendorid); ";
             var cmd = new SqlCommand(sql, connection.SqlConn);
-            cmd.Parameters.AddWithValue("@partnbr", product.PartNbr);
-            cmd.Parameters.AddWithValue("@name", product.Name);
-            cmd.Parameters.AddWithValue("@price", product.Price);
-            cmd.Parameters.AddWithValue("@unit", product.Unit);
-            cmd.Parameters.AddWithValue("@photopath", (object)product.PhotoPath ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@vendorid", product.VendorId);
-            var rowsAffected = cmd.ExecuteNonQuery();
+            var rowsAffected = AddWithValue(product, cmd);
+
             return (rowsAffected == 1);
         }
 
-        //public bool Change(Product product)
-        //{
+        public bool Change(Product product)
+        {
+            var sql = $"UPDATE Products Set " +
+                $"PartNbr = @partnbr, " +
+                $"Name = @name, " +
+                $"Price = @price, " +
+                $"Unit = @unit, " +
+                $"PhotoPath = @photopath, " +
+                $"VendorId = @vendorid " +
+                $"Where Id = @id;";
+            var cmd = new SqlCommand(sql, connection.SqlConn);
+            cmd.Parameters.AddWithValue("@id", product.Id);
+            var rowsAffected = AddWithValue(product, cmd);
 
-        //}
+            return (rowsAffected == 1);
 
-        //public bool Delete(Product product)
-        //{
+        }
 
-        //}
+        public bool Delete(Product product)
+        {
+            var sql = $"DELETE from Products " +
+                $"Where Id = @id;";
+            var cmd = new SqlCommand(sql, connection.SqlConn);
+            cmd.Parameters.AddWithValue("@id", product.Id);
+            var rowsAffected = cmd.ExecuteNonQuery();
+
+            return (rowsAffected == 1);
+        }
 
         public ProductsController(Connection connection)
         {

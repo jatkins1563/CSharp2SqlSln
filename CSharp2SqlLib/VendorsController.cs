@@ -26,6 +26,19 @@ namespace CSharp2SqlLib
             return vendor;
         }
 
+        private int AddWithValue(Vendor vendor, SqlCommand cmd)
+        {
+            cmd.Parameters.AddWithValue("@code", vendor.Code);
+            cmd.Parameters.AddWithValue("@name", vendor.Name);
+            cmd.Parameters.AddWithValue("@address", vendor.Address);
+            cmd.Parameters.AddWithValue("@city", vendor.City);
+            cmd.Parameters.AddWithValue("@state", vendor.State);
+            cmd.Parameters.AddWithValue("@zip", vendor.Zip);
+            cmd.Parameters.AddWithValue("@phone", vendor.Phone);
+            cmd.Parameters.AddWithValue("@email", vendor.Email);
+            return cmd.ExecuteNonQuery();
+        }
+
         public List<Vendor> GetAll()
         {
             var sql = "SELECT * From Vendors;";
@@ -44,8 +57,8 @@ namespace CSharp2SqlLib
         public Vendor GetByPK(int id)
         {
             var sql = $"SELECT * From Vendors where Id = {id};";
-            var sqlcmd = new SqlCommand(sql, connection.SqlConn);
-            var reader = sqlcmd.ExecuteReader();
+            var cmd = new SqlCommand(sql, connection.SqlConn);
+            var reader = cmd.ExecuteReader();
             if (!reader.HasRows)
             {
                 reader.Close();
@@ -60,9 +73,9 @@ namespace CSharp2SqlLib
         public Vendor GetByCode(string code)
         {
             var sql = $"SELECT * From Vendors where Code = @code;";
-            var sqlcmd = new SqlCommand(sql, connection.SqlConn);
-            sqlcmd.Parameters.AddWithValue("@code", code);
-            var reader = sqlcmd.ExecuteReader();
+            var cmd = new SqlCommand(sql, connection.SqlConn);
+            cmd.Parameters.AddWithValue("@code", code);
+            var reader = cmd.ExecuteReader();
             if (!reader.HasRows)
             {
                 reader.Close();
@@ -81,16 +94,8 @@ namespace CSharp2SqlLib
                 $" State, Zip, Phone, Email) VALUES " +
                 $"(@code, @name, @address, @city, " +
                 $"@state, @zip, @phone, @email)";
-            var sqlcmd = new SqlCommand(sql, connection.SqlConn);
-            sqlcmd.Parameters.AddWithValue("@code", vendor.Code);
-            sqlcmd.Parameters.AddWithValue("@name", vendor.Name);
-            sqlcmd.Parameters.AddWithValue("@address", vendor.Address);
-            sqlcmd.Parameters.AddWithValue("@city", vendor.City);
-            sqlcmd.Parameters.AddWithValue("@state", vendor.State);
-            sqlcmd.Parameters.AddWithValue("@zip", vendor.Zip);
-            sqlcmd.Parameters.AddWithValue("@phone", vendor.Phone);
-            sqlcmd.Parameters.AddWithValue("@email", vendor.Email);
-            var rowsAffected = sqlcmd.ExecuteNonQuery();
+            var cmd = new SqlCommand(sql, connection.SqlConn);
+            var rowsAffected = AddWithValue(vendor, cmd);
 
             return (rowsAffected == 1);
         }
@@ -107,17 +112,9 @@ namespace CSharp2SqlLib
                 $"Phone = @phone, " +
                 $"Email = @email, " +
                 $"Where Id = @id;";
-            var sqlcmd = new SqlCommand(sql, connection.SqlConn);
-            sqlcmd.Parameters.AddWithValue("@id", vendor.Id);
-            sqlcmd.Parameters.AddWithValue("@code", vendor.Code);
-            sqlcmd.Parameters.AddWithValue("@name", vendor.Name);
-            sqlcmd.Parameters.AddWithValue("@address", vendor.Address);
-            sqlcmd.Parameters.AddWithValue("@city", vendor.City);
-            sqlcmd.Parameters.AddWithValue("@state", vendor.State);
-            sqlcmd.Parameters.AddWithValue("@zip", vendor.Zip);
-            sqlcmd.Parameters.AddWithValue("@phone", vendor.Phone);
-            sqlcmd.Parameters.AddWithValue("@email", vendor.Email);
-            var rowsAffected = sqlcmd.ExecuteNonQuery();
+            var cmd = new SqlCommand(sql, connection.SqlConn);
+            cmd.Parameters.AddWithValue("@id", vendor.Id);
+            var rowsAffected = AddWithValue(vendor, cmd);
 
             return (rowsAffected == 1);
         }

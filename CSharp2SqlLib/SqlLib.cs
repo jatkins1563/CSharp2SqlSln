@@ -25,6 +25,19 @@ namespace CSharp2SqlLib
             return user;
         }
 
+        private int AddWithValue(User user, SqlCommand cmd)
+        {
+            cmd.Parameters.AddWithValue("@username", user.Username);
+            cmd.Parameters.AddWithValue("@password", user.Password);
+            cmd.Parameters.AddWithValue("@firstname", user.Firstname);
+            cmd.Parameters.AddWithValue("@lastname", user.Lastname);
+            cmd.Parameters.AddWithValue("@phone", user.Phone);
+            cmd.Parameters.AddWithValue("@email", user.Email);
+            cmd.Parameters.AddWithValue("@isreviewer", user.IsReviewer);
+            cmd.Parameters.AddWithValue("@isadmin", user.IsAdmin);
+            return cmd.ExecuteNonQuery();
+        }
+
         public bool Change(User user)
         {
             var sql = $"UPDATE Users Set " +
@@ -37,17 +50,9 @@ namespace CSharp2SqlLib
                 $"IsReviewer = @isreviewer, " +
                 $"IsAdmin = @isadmin " +
                 $"Where Id = @id;";
-            var sqlcmd = new SqlCommand(sql, sqlconn);
-            sqlcmd.Parameters.AddWithValue("@id", user.Id);
-            sqlcmd.Parameters.AddWithValue("@username", user.Username);
-            sqlcmd.Parameters.AddWithValue("@password", user.Password);
-            sqlcmd.Parameters.AddWithValue("@firstname", user.Firstname);
-            sqlcmd.Parameters.AddWithValue("@lastname", user.Lastname);
-            sqlcmd.Parameters.AddWithValue("@phone", user.Phone);
-            sqlcmd.Parameters.AddWithValue("@email", user.Email);
-            sqlcmd.Parameters.AddWithValue("@isreviewer", user.IsReviewer);
-            sqlcmd.Parameters.AddWithValue("@isadmin", user.IsAdmin);
-            var rowsAffected = sqlcmd.ExecuteNonQuery();
+            var cmd = new SqlCommand(sql, sqlconn);
+            cmd.Parameters.AddWithValue("@id", user.Id);
+            var rowsAffected = AddWithValue(user, cmd);
 
             return (rowsAffected == 1);
         }
@@ -56,9 +61,9 @@ namespace CSharp2SqlLib
         {
             var sql = $"DELETE from Users " +
                 $"Where Id = @id;";
-            var sqlcmd = new SqlCommand(sql, sqlconn);
-            sqlcmd.Parameters.AddWithValue("@id", user.Id);
-            var rowsAffected = sqlcmd.ExecuteNonQuery();
+            var cmd = new SqlCommand(sql, sqlconn);
+            cmd.Parameters.AddWithValue("@id", user.Id);
+            var rowsAffected = cmd.ExecuteNonQuery();
 
             return (rowsAffected == 1);
         }
@@ -80,16 +85,8 @@ namespace CSharp2SqlLib
                 $" Phone, Email, IsReviewer, IsAdmin) VALUES " +
                 $"(@username, @password, @firstname, @lastname, " +
                 $"@phone, @email, @isreviewer, @isadmin)";
-            var sqlcmd = new SqlCommand(sql, sqlconn);
-            sqlcmd.Parameters.AddWithValue("@username", user.Username);
-            sqlcmd.Parameters.AddWithValue("@password", user.Password);
-            sqlcmd.Parameters.AddWithValue("@firstname", user.Firstname);
-            sqlcmd.Parameters.AddWithValue("@lastname", user.Lastname);
-            sqlcmd.Parameters.AddWithValue("@phone", user.Phone);
-            sqlcmd.Parameters.AddWithValue("@email", user.Email);
-            sqlcmd.Parameters.AddWithValue("@isreviewer", user.IsReviewer);
-            sqlcmd.Parameters.AddWithValue("@isadmin", user.IsAdmin);
-            var rowsAffected = sqlcmd.ExecuteNonQuery();
+            var cmd = new SqlCommand(sql, sqlconn);
+            var rowsAffected = AddWithValue(user, cmd);
 
             return (rowsAffected == 1);
         }
@@ -97,8 +94,8 @@ namespace CSharp2SqlLib
         public List<User> GetAllUsers()
         {
             var sql = "SELECT * From Users;";
-            var sqlcmd = new SqlCommand(sql, sqlconn);
-            var reader = sqlcmd.ExecuteReader();
+            var cmd = new SqlCommand(sql, sqlconn);
+            var reader = cmd.ExecuteReader();
 
             var users = new List<User>();
             while (reader.Read())
@@ -109,11 +106,12 @@ namespace CSharp2SqlLib
             reader.Close();
             return users;
         }
+
         public User GetByPK(int id)
         {
             var sql = $"SELECT * From Users where Id = {id};";
-            var sqlcmd = new SqlCommand(sql, sqlconn);
-            var reader = sqlcmd.ExecuteReader();
+            var cmd = new SqlCommand(sql, sqlconn);
+            var reader = cmd.ExecuteReader();
             if(!reader.HasRows)
             {
                 reader.Close();
@@ -138,6 +136,7 @@ namespace CSharp2SqlLib
             }
             Console.WriteLine("Open connection successful!");
         }
+
         public void Disconnect()
         {
             if (sqlconn == null)

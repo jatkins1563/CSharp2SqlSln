@@ -19,7 +19,6 @@ namespace CSharp2Sql
             var products = productsController.GetAll();
             var product = productsController.GetByPK(5);
             
-        
             //var sqllib = new SqlLib();
             //sqllib.Connect();
 
