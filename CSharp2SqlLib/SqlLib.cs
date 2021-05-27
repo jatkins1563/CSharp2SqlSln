@@ -8,65 +8,120 @@ namespace CSharp2SqlLib
     {
         public SqlConnection sqlconn { get; set; }
 
+        private User FillUserFromSqlRow(SqlDataReader reader)
+        {
+            var user = new User()
+            {
+                Id = Convert.ToInt32(reader["Id"]),
+                Username = Convert.ToString(reader["Username"]),
+                Password = Convert.ToString(reader["Password"]),
+                Firstname = Convert.ToString(reader["Firstname"]),
+                Lastname = Convert.ToString(reader["Lastname"]),
+                Phone = Convert.ToString(reader["Phone"]),
+                Email = Convert.ToString(reader["Email"]),
+                IsReviewer = Convert.ToBoolean(reader["IsReviewer"]),
+                IsAdmin = Convert.ToBoolean(reader["IsAdmin"]),
+            };
+            return user;
+        }
+
+        public bool Change(User user)
+        {
+            var sql = $"UPDATE Users Set " +
+                $"Username = @username, " +
+                $"Password = @password, " +
+                $"Firstname = @firstname, " +
+                $"Lastname = @lastname, " +
+                $"Phone = @phone, " +
+                $"Email = @email, " +
+                $"IsReviewer = @isreviewer, " +
+                $"IsAdmin = @isadmin " +
+                $"Where Id = @id;";
+            var sqlcmd = new SqlCommand(sql, sqlconn);
+            sqlcmd.Parameters.AddWithValue("@id", user.Id);
+            sqlcmd.Parameters.AddWithValue("@username", user.Username);
+            sqlcmd.Parameters.AddWithValue("@password", user.Password);
+            sqlcmd.Parameters.AddWithValue("@firstname", user.Firstname);
+            sqlcmd.Parameters.AddWithValue("@lastname", user.Lastname);
+            sqlcmd.Parameters.AddWithValue("@phone", user.Phone);
+            sqlcmd.Parameters.AddWithValue("@email", user.Email);
+            sqlcmd.Parameters.AddWithValue("@isreviewer", user.IsReviewer);
+            sqlcmd.Parameters.AddWithValue("@isadmin", user.IsAdmin);
+            var rowsAffected = sqlcmd.ExecuteNonQuery();
+
+            return (rowsAffected == 1);
+        }
+
+        public bool Delete(User user)
+        {
+            var sql = $"DELETE from Users " +
+                $"Where Id = @id;";
+            var sqlcmd = new SqlCommand(sql, sqlconn);
+            sqlcmd.Parameters.AddWithValue("@id", user.Id);
+            var rowsAffected = sqlcmd.ExecuteNonQuery();
+
+            return (rowsAffected == 1);
+        }
+
+        public bool CreateMultiple(List<User> users)
+        {
+            var success = true;
+            foreach(var user in users)
+            {
+                success = success && Create(user);
+            }
+            return success;
+        }
+
+        public bool Create(User user)
+        {
+            var sql = $"INSERT into Users " +
+                $" (Username, Password, Firstname, Lastname," +
+                $" Phone, Email, IsReviewer, IsAdmin) VALUES " +
+                $"(@username, @password, @firstname, @lastname, " +
+                $"@phone, @email, @isreviewer, @isadmin)";
+            var sqlcmd = new SqlCommand(sql, sqlconn);
+            sqlcmd.Parameters.AddWithValue("@username", user.Username);
+            sqlcmd.Parameters.AddWithValue("@password", user.Password);
+            sqlcmd.Parameters.AddWithValue("@firstname", user.Firstname);
+            sqlcmd.Parameters.AddWithValue("@lastname", user.Lastname);
+            sqlcmd.Parameters.AddWithValue("@phone", user.Phone);
+            sqlcmd.Parameters.AddWithValue("@email", user.Email);
+            sqlcmd.Parameters.AddWithValue("@isreviewer", user.IsReviewer);
+            sqlcmd.Parameters.AddWithValue("@isadmin", user.IsAdmin);
+            var rowsAffected = sqlcmd.ExecuteNonQuery();
+
+            return (rowsAffected == 1);
+        }
+
         public List<User> GetAllUsers()
         {
             var sql = "SELECT * From Users;";
             var sqlcmd = new SqlCommand(sql, sqlconn);
-            var sqldatareader = sqlcmd.ExecuteReader();
+            var reader = sqlcmd.ExecuteReader();
 
             var users = new List<User>();
-            while (sqldatareader.Read())
+            while (reader.Read())
             {
-                var id = Convert.ToInt32(sqldatareader["Id"]);
-                var username = Convert.ToString(sqldatareader["Username"]);
-                var password = Convert.ToString(sqldatareader["Password"]);
-                var firstname = Convert.ToString(sqldatareader["Firstname"]);
-                var lastname = Convert.ToString(sqldatareader["Lastname"]);
-                var phone = Convert.ToString(sqldatareader["Phone"]);
-                var email = Convert.ToString(sqldatareader["Email"]);
-                var isreviewer = Convert.ToBoolean(sqldatareader["IsReviewer"]);
-                var isadmin = Convert.ToBoolean(sqldatareader["IsAdmin"]);
-                var user = new User()
-                {
-                    Id = id,
-                    Username = username,
-                    Password = password,
-                    Firstname = firstname,
-                    Lastname = lastname,
-                    Phone = phone,
-                    Email = email,
-                    IsReviewer = isreviewer,
-                    IsAdmin = isadmin
-                };
+                var user = FillUserFromSqlRow(reader);
                 users.Add(user);
             }
-            sqldatareader.Close();
+            reader.Close();
             return users;
         }
         public User GetByPK(int id)
         {
             var sql = $"SELECT * From Users where Id = {id};";
             var sqlcmd = new SqlCommand(sql, sqlconn);
-            var sqldatareader = sqlcmd.ExecuteReader();
-            if(!sqldatareader.HasRows)
+            var reader = sqlcmd.ExecuteReader();
+            if(!reader.HasRows)
             {
-                sqldatareader.Close();
+                reader.Close();
                 return null;
             }
-            sqldatareader.Read();
-            var user = new User()
-            {
-                Id = Convert.ToInt32(sqldatareader["Id"]),
-                Username = Convert.ToString(sqldatareader["Username"]),
-                Password = Convert.ToString(sqldatareader["Password"]),
-                Firstname = Convert.ToString(sqldatareader["Firstname"]),
-                Lastname = Convert.ToString(sqldatareader["Lastname"]),
-                Phone = Convert.ToString(sqldatareader["Phone"]),
-                Email = Convert.ToString(sqldatareader["Email"]),
-                IsReviewer = Convert.ToBoolean(sqldatareader["IsReviewer"]),
-                IsAdmin = Convert.ToBoolean(sqldatareader["IsAdmin"]),
-            };
-            sqldatareader.Close();
+            reader.Read();
+            var user = FillUserFromSqlRow(reader);
+            reader.Close();
             return user;
         }
 
